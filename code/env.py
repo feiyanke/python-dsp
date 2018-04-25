@@ -1,6 +1,5 @@
 import time
 import numpy as np
-from enum import IntEnum
 from block import Block
 
 sim_chunk = 320  # the number of samples for one loop

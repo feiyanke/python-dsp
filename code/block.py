@@ -56,7 +56,7 @@ class TimedFunctionBlock(FunctionBlock):
 #     return TimedFunctionBlock(sin_wave())
 
 
-class SinSingal(Block):
+class SinSignal(Block):
 
     def __init__(self, amp=1.0, freq=1.0, phase=0.0, bias=0.0):
         super().__init__()
@@ -69,7 +69,7 @@ class SinSingal(Block):
         return self._amp*np.sin(2*np.pi*self._freq*env.get_ts()+self._phase)+self._bias
 
 
-class CosSingal(Block):
+class CosSignal(Block):
 
     def __init__(self, amp=1.0, freq=1.0, phase=0.0, bias=0.0):
         super().__init__()
@@ -104,6 +104,7 @@ class Audio(Block):
 
         def callback(outdata, frames, time, status):
             assert not status
+
             data = self._queue.dequeue(frames)
             if len(data) < len(outdata):
                 outdata[:len(data)] = data
