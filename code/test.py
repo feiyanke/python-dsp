@@ -1,6 +1,7 @@
 import sounddevice as sd
 import numpy as np
 import soundfile as sf
+from matplotlib.animation import TimedAnimation
 
 def test1():
     data, fs = sf.read('1.wav', dtype='float32')
@@ -42,5 +43,16 @@ def test4():
     sd.sleep(10000)
     stream.stop()
 
-test4()
+def test5():
+    import matplotlib.pyplot as plt
+    ts = np.linspace(0, 0.02, 320, False)
+    s = 0.8*np.sin(2 * np.pi * 440 * ts)
+    fig = plt.figure()
+    ax = plt.subplot()
+    # a, = plt.plot(ts,s)
+    plt.plot(np.linspace(0, 1, 500), np.linspace(0, 1, 500))
+    plt.show()
+
+
+test5()
 

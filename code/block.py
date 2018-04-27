@@ -4,6 +4,7 @@ from ndqueue import ndqueue
 import sounddevice as sd
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+from matplotlib.animation import Animation
 
 
 class Block(object):
@@ -48,6 +49,7 @@ class TimedFunctionBlock(FunctionBlock):
     def run(self, *args, **kwargs):
         raise self._f(env.get_ts(), *args, **kwargs)
 
+
 # def sin_wave(amp=1.0, freq=1.0, phase=0.0, bias=0.0):
 #     return lambda t: amp*np.sin(2*np.pi*freq*t+phase)+bias
 #
@@ -68,7 +70,7 @@ class SinSignal(Block):
         self._bias = bias
 
     def run(self):
-        return self._amp*np.sin(2*np.pi*self._freq*env.get_ts()+self._phase)+self._bias
+        return self._amp * np.sin(2 * np.pi * self._freq * env.get_ts() + self._phase) + self._bias
 
 
 class CosSignal(Block):
@@ -81,7 +83,7 @@ class CosSignal(Block):
         self._bias = bias
 
     def run(self):
-        return self._amp*np.cos(2*np.pi*self._freq*env.get_ts()+self._phase)+self._bias
+        return self._amp * np.cos(2 * np.pi * self._freq * env.get_ts() + self._phase) + self._bias
 
 
 class Buffer(Block):
@@ -93,9 +95,9 @@ class Buffer(Block):
     def run(self, s):
         self._buffer.append(s)
 
-    def get(self, channel):
+    def get(self):
         result = np.asarray(self._buffer)
-        result.shape = int(result.size / channel), channel
+        result.shape = result.size
         return result
 
 
@@ -130,17 +132,58 @@ class Audio(Block):
         self._stream.stop()
 
 
-# class Figure(Block):
-#
-#     def __init__(self, ax):
-#         super().__init__()
-#         self._ax = ax
-#         self._lines = []
-#         fa = FuncAnimation()
-#
-#     def start(self, s):
-#         s.shape = s.shape[0], int(s.size/s.shape[0])
-#         self._lines = [self._ax.plot([], [])[0] for i in range(s.shape[1])]
+class ScopeAnimation(Animation):
+
+    def __init__(self, scope, blit=True):
+        super().__init__(scope._fig, scope, blit)
+        self._drawn_artists = [scope._ln]
+
+    def _draw_frame(self, framedata):
+        # for a in self._drawn_artists:
+        #     a.set_visible(True)
+        pass
+
+    def _step(self, *args):
+        self._draw_next_frame(None, self._blit)
+        return True
+
+    def new_frame_seq(self):
+        'Creates a new sequence of frame information.'
+        # Default implementation is just an iterator over self._framedata
+        return []
+
+    def new_saved_frame_seq(self):
+        'Creates a new sequence of saved/cached frame information.'
+        # Default is the same as the regular frame sequence
+        return []
 
 
+class Scope(Block):
 
+    def run(self, s):
+        ts = env.get_ts()
+        self._ax.set_xlim(env.sim_time, env.sim_time + env.get_duration())
+        self._ax.set_ylim(-1, 1)
+        self._ln.set_data(ts, s)
+        if self._cb is not None:
+            self._cb()
+        plt.pause(0.001)
+
+    def begin(self, *args, **kwargs):
+        self._cb = None
+        self._fig = plt.figure()
+        self._ax = plt.subplot()
+        self._ln, = plt.plot(np.linspace(0, 1, 500), np.linspace(0, 1, 500), animated=True)
+        self._ani = ScopeAnimation(self)
+
+    def add_callback(self, cb):
+        self._cb = cb
+
+    def remove_callback(self, cb):
+        self._cb = None
+
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
