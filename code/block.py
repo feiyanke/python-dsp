@@ -2,6 +2,8 @@ import env
 import numpy as np
 from ndqueue import ndqueue
 import sounddevice as sd
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
 
 class Block(object):
@@ -13,17 +15,17 @@ class Block(object):
     def __call__(self, *args, **kwargs):
         if env.sim_time > self._time:
             if env.is_begin():
-                self.begin()
+                self.begin(*args, **kwargs)
             self._y = self.run(*args, **kwargs)
             self._time = env.sim_time
             if env.is_end():
-                self.end()
+                self.end(*args, **kwargs)
         return self._y
 
-    def begin(self):
+    def begin(self, *args, **kwargs):
         pass
 
-    def end(self):
+    def end(self, *args, **kwargs):
         pass
 
     def run(self, *args, **kwargs):
@@ -104,7 +106,7 @@ class Audio(Block):
 
         def callback(outdata, frames, time, status):
             assert not status
-
+            print("callback")
             data = self._queue.dequeue(frames)
             if len(data) < len(outdata):
                 outdata[:len(data)] = data
@@ -116,11 +118,29 @@ class Audio(Block):
         self._stream = sd.OutputStream(channels=channel, samplerate=samplerate, dtype=dtype, callback=callback)
 
     def run(self, s):
+        print("run")
         self._queue.enqueue(s)
 
-    def begin(self):
+    def begin(self, s):
+        print("begin")
         self._stream.start()
 
-    def end(self):
+    def end(self, s):
+        print("end")
         self._stream.stop()
+
+
+# class Figure(Block):
+#
+#     def __init__(self, ax):
+#         super().__init__()
+#         self._ax = ax
+#         self._lines = []
+#         fa = FuncAnimation()
+#
+#     def start(self, s):
+#         s.shape = s.shape[0], int(s.size/s.shape[0])
+#         self._lines = [self._ax.plot([], [])[0] for i in range(s.shape[1])]
+
+
 
