@@ -85,6 +85,23 @@ class CosSignal(Block):
     def run(self):
         return self._amp * np.cos(2 * np.pi * self._freq * env.get_ts() + self._phase) + self._bias
 
+class TriangleSignal(Block):
+
+    def __init__(self, amp=1.0, freq=1.0, phase=0.0, bias=0.0):
+        super().__init__()
+        self._amp = amp
+        self._freq = freq
+        self._phase = phase
+        self._bias = bias
+
+    def run(self):
+        ts = env.get_ts()
+        cycles = self._freq * ts + self._phase / np.pi / 2
+        frac, _ = np.modf(cycles)
+
+        ys = np.abs(frac - 0.5) * 4 - 1 + self._bias
+        return ys
+
 
 class Buffer(Block):
 
