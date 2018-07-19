@@ -127,5 +127,11 @@ def test8():
     plt.axis('tight')
     plt.show()
 
+def test9():
+    import numpy as np
+    ys = np.sin(np.linspace(0, 5, 100))
+    window = np.ones(11)/11
+    np.convolve(ys, window)
+
 test8()
 
